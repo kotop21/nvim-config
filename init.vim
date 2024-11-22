@@ -1,4 +1,7 @@
 call plug#begin('~/.vim/plugged')
+
+" Plugins
+Plug 'kyazdani42/nvim-web-devicons'
 Plug 'junegunn/seoul256.vim'
 Plug 'junegunn/vim-easy-align'
 Plug 'scrooloose/nerdtree', { 'on':  'NERDTreeToggle' }
@@ -15,40 +18,54 @@ Plug 'hrsh7th/cmp-path'
 Plug 'hrsh7th/cmp-cmdline'
 Plug 'hrsh7th/nvim-cmp'
 Plug 'rust-lang/rust.vim'
-" Snippet engine for nvim-cmp
 Plug 'hrsh7th/cmp-vsnip'
 Plug 'hrsh7th/vim-vsnip'
 Plug 'prichrd/netrw.nvim'
+Plug 'lyokha/vim-xkbswitch'
 
 call plug#end()
 
-
+" General Settings
 syntax enable
 set background=dark
-colorscheme gruvbox
 set number
 set cmdheight=0
-nnoremap <C-n> :Explore<CR>
 set guifont=FiraCode\ Nerd\ Font:h24
-let g:netrw_browse_split = 3
 let g:netrw_banner = 0
-let g:netrw_browse_split = 0
 
+" Key Mappings
+nnoremap j k
+nnoremap k j
+nnoremap <C-n> :Explore<CR>
+
+" Airline Settings
 let g:airline#extensions#trailing#enabled = 0
 let g:airline_section_z = '%{strftime("%H:%M:%S")}'
 let g:airline_theme = 'bubblegum'
 
-lua << EOF
--- Setup for nvim-autopairs
-require("nvim-autopairs").setup {}
+" XkbSwitch Settings
+let g:XkbSwitchLib = '/usr/local/lib/input-source-switcher/build/libInputSourceSwitcher.dylib'
+let g:XkbSwitchEnabled = 1
+autocmd InsertLeave * :silent !setxkbmap -layout us
 
--- Setup for nvim-cmp
+" Cursor
+set guicursor=n-v-c:ver25
+set guicursor+=i:ver25
+set guicursor+=r-cr:ver25
+
+" Nvim-Autopairs Setup
+lua << EOF
+require("nvim-autopairs").setup {}
+EOF
+
+" Nvim-Cmp Setup
+lua << EOF
 local cmp = require'cmp'
 
 cmp.setup({
   snippet = {
     expand = function(args)
-      vim.fn["vsnip#anonymous"](args.body) -- Using `vsnip` as the snippet engine
+      vim.fn["vsnip#anonymous"](args.body)
     end,
   },
   mapping = cmp.mapping.preset.insert({
@@ -60,13 +77,12 @@ cmp.setup({
   }),
   sources = cmp.config.sources({
     { name = 'nvim_lsp' },
-    { name = 'vsnip' }, -- Using vsnip for snippets
+    { name = 'vsnip' },
   }, {
     { name = 'buffer' },
   })
 })
 
--- Use buffer source for `/` and `?`
 cmp.setup.cmdline({ '/', '?' }, {
   mapping = cmp.mapping.preset.cmdline(),
   sources = {
@@ -74,7 +90,6 @@ cmp.setup.cmdline({ '/', '?' }, {
   }
 })
 
--- Use cmdline & path source for ':'
 cmp.setup.cmdline(':', {
   mapping = cmp.mapping.preset.cmdline(),
   sources = cmp.config.sources({
@@ -84,33 +99,43 @@ cmp.setup.cmdline(':', {
   })
 })
 
--- LSP configuration with nvim-cmp capabilities
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
--- Example: Replace `<YOUR_LSP_SERVER>` with actual LSP servers
 require('lspconfig')['pyright'].setup {
   capabilities = capabilities,
 }
 require('lspconfig')['ts_ls'].setup {
   capabilities = capabilities,
 }
--- Пример конфигурации для init.lua
-require("netrw").setup({
-  -- File icons to use when `use_devicons` is false or if
-  -- no icon is found for the given file type.
-  icons = {
-    symlink = '',
-    directory = '',
-    file = '',
-  },
-  -- Uses mini.icon or nvim-web-devicons if true, otherwise use the file icon specified above
-  use_devicons = true,
-  mappings = {
-    -- Function mappings receive an object describing the node under the cursor
-    ['p'] = function(payload) print(vim.inspect(payload)) end,
-    -- String mappings are executed as vim commands
-    ['<Leader>p'] = ":echo 'hello world'<CR>",
-  },
-})
 EOF
 
+" Netrw Setup with Icons
+lua << EOF
+require("netrw").setup({
+  use_devicons = true,
+})
+
+local devicons = require('nvim-web-devicons')
+
+devicons.setup({
+  default = true,
+  override = {
+    python = { icon = '', color = '#3572A5', name = 'Python' },
+    javascript = { icon = '', color = '#F7DF1E', name = 'JavaScript' },
+    javascriptreact = { icon = '', color = '#F7DF1E', name = 'JavaScriptReact' },
+    typescript = { icon = '', color = '#3178C6', name = 'TypeScript' },
+    typescriptreact = { icon = '', color = '#3178C6', name = 'TypeScriptReact' },
+    lua = { icon = '', color = '#000080', name = 'Lua' },
+    ruby = { icon = '', color = '#701516', name = 'Ruby' },
+    go = { icon = '', color = '#00ADD8', name = 'Go' },
+    rust = { icon = '', color = '#FF5733', name = 'Rust' },
+  }
+})
+
+require'nvim-web-devicons'.set_icon {
+  folder = {
+    default = '',
+    open = '',
+  },
+}
+EOF
